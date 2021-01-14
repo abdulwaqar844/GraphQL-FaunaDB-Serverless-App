@@ -1,18 +1,20 @@
 const { ApolloServer, gql } = require('apollo-server-lambda')
-const faunadb = require('faunadb'),
+var faunadb = require('faunadb'),
   q = faunadb.query;
+
 const typeDefs = gql`
   type Query {
-    todos:[Todo!]
+    todos: [Todo!]
+  }
+  type Mutation {
+    addTodo(task: String!): Todo
   }
   type Todo {
     id: ID!
-    name: String!
+    task: String!
     status: Boolean!
   }
 `
-
-
 const resolvers = {
   Query: {
     todos: async (parent, args, context) => {
@@ -23,15 +25,43 @@ const resolvers = {
             q.Paginate(q.Match(q.Index('todo-index'))),
             q.Lambda(x => q.Get(x))
           )
-          );
-        return        result.data;
-      } catch (err) {
-        return err.toString();
-        
+        ); console.log(result.data)
+
+        return result.data.map(d=>{
+          return {
+            id: d.ts,
+            status: d.data.status,
+            task: d.data.task
+          }
+        })
+      }
+      catch (err) {
+        console.log(err)
       }
     }
-    
+  
   },
+  Mutation: {
+    addTodo: async (_, { task }) => {
+      try {
+        var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
+        let result = await client.query(
+          q.Create(
+            q.Collection('todos'),
+            {
+              data: {
+                task: task,
+                status: true
+              }
+            },
+          )
+        );
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
+    }
+  }
 }
 
 const server = new ApolloServer({
