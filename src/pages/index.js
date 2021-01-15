@@ -49,7 +49,7 @@ export default function Index() {
           inputText = node;
         }} />
       </label>
-      <button onClick={addTask}>Add Task</button>
+      <button onClick={addTask}>Add New Task</button>
 
       <br /> <br />
       <table border="2" width="500px" >
