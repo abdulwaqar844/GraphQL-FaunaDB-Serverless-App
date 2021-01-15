@@ -8,6 +8,8 @@ const typeDefs = gql`
   }
   type Mutation {
     addTodo(task: String!): Todo
+    deleteTodo(id: ID!): Todo
+
   }
   type Todo {
     id: ID!
@@ -25,11 +27,11 @@ const resolvers = {
             q.Paginate(q.Match(q.Index('todo-index'))),
             q.Lambda(x => q.Get(x))
           )
-        ); console.log(result.data)
+        );console.log(result.data)
 
-        return result.data.map(d=>{
+        return result.data.map(d => {
           return {
-            id: d.ts,
+            id: d.ref.id,
             status: d.data.status,
             task: d.data.task
           }
@@ -39,7 +41,7 @@ const resolvers = {
         console.log(err)
       }
     }
-  
+
   },
   Mutation: {
     addTodo: async (_, { task }) => {
@@ -60,8 +62,23 @@ const resolvers = {
       } catch (err) {
         return err.toString();
       }
+    },
+    deleteTodo: async (_, { id }) => {
+      try {
+        var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
+        let result = await client.query(
+          q.Delete(
+            q.Ref(q.Collection('todos'), id)
+          )
+
+        ); 
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
     }
   }
+
 }
 
 const server = new ApolloServer({

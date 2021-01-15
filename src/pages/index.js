@@ -4,12 +4,12 @@ import gql from 'graphql-tag';
 
 const GET_TODOS = gql`
 {
-  todos
-  {
+  todos  {
   id
   task
   status
-}} `
+}
+} `
 const ADD_TODO = gql`
     mutation addTodo($task: String!){
         addTodo(task: $task){
@@ -17,9 +17,27 @@ const ADD_TODO = gql`
         }
     }
 `
+const DELETE_TODOS = gql`
+    mutation deleteTodo($id: ID!){
+      deleteTodo(id: $id){
+            id
+        }
+    }
+`
 export default function Index() {
-  let inputText;
+  const [deleteTodo] = useMutation(DELETE_TODOS);
+  const handleDelete = (id) => {
+    deleteTodo({
+      variables: {
+        id
+      },
+      refetchQueries: [{ query: GET_TODOS }]
+    })
+    console.log("Form Index" ,id)
+    console.log("Form Functions" ,deleteTodo)
 
+  }
+  let inputText;
   const [addTodo] = useMutation(ADD_TODO);
   const addTask = () => {
     addTodo({
@@ -32,15 +50,12 @@ export default function Index() {
   }
 
   const { loading, error, data } = useQuery(GET_TODOS);
-
   if (loading)
     return <h2>Loading..</h2>
-
   if (error) {
     console.log(error)
     return <h2>Error</h2>
   }
-
   return (
     <div>
       <label>
@@ -53,16 +68,19 @@ export default function Index() {
 
       <br /> <br />
       <table border="2" width="500px" >
-        <thead>
+        <thead>      
+        <tr>
           <th>Task</th>
           <th>Status</th>
-        </thead>
+        </tr>
+  </thead>
         <tbody>
           {data.todos.map(d => {
             return (
               <tr key={d.id}>
                 <td>{d.task}</td>
                 <td>{d.status ? "Pending" : "Completed"}</td>
+                <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
               </tr>
             )
           }
