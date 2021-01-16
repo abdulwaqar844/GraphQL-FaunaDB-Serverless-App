@@ -1,29 +1,46 @@
 .container{
 text-align: center;
 padding-top: 20px;
-
 }
 input{
-    border: bold black;
 height: 30px;
 background-color: #fdfdff;
 width: 50%;
 margin: 10px;
 color: rgb(0, 12, 12);
 }
-.pending{
+.status{
     padding: 0%;
+    width: 40px;
     
+}
+.data{
+align-items: center;
+    border-style: dotted;
+    border-width: 2px;
+    background-color: rgb(209, 209, 236);
+    text-align: start;
 }
 button{
     border-radius: 7px;
     height: 30px;
-    width: auto;
+    width: 114px;
 }
 img{
     margin-left: 0%;
     margin-right: 1px;
 }
 .task{
-    width: 60%;
-}
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  table>thead{
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+  }

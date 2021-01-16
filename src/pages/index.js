@@ -86,7 +86,7 @@ export default function Index() {
           <h1>Loading ....</h1>
         </div>
       ) : data.todos.length >= 1 ? (
-        <table border="2" width="500px" >
+        <table className={style.data}  >
           <thead>
             <tr>
               <th>Task</th>
@@ -99,11 +99,11 @@ export default function Index() {
               return (
                 <tr key={d.id}>
                   <td className={style.task}>{d.task}</td>
-                  <td className={style.pending}>{d.status ? (
+                  <td className={style.status}>{d.status ? (
                     <img style={{ width: "20px", height: "16px" }} src={Completedicon} alt="Completed Status" />
                   ) : (
 
-                      <button onClick={() => handleupdate(d)}> <img style={{ width: "20px", height: "16px" }} src={Pendingicon} alt="Pending Status" />Mark Completed</button>
+                      <button onClick={() => handleupdate(d)}>Mark Completed</button>
                     )
                   }
                   </td>
