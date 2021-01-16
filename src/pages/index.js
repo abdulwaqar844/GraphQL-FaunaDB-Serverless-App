@@ -1,7 +1,8 @@
 import React from "react"
 import { useQuery, useMutation } from '@apollo/client';
+import Completedicon from "./../Images/Completedicon.png"
+import Pendingicon from "./../Images/Pendingicon.png"
 import gql from 'graphql-tag';
-
 const GET_TODOS = gql`
 {
   todos  {
@@ -15,16 +16,34 @@ const ADD_TODO = gql`
         addTodo(task: $task){
             task
         }
-    }
-`
+    }`
 const DELETE_TODOS = gql`
     mutation deleteTodo($id: ID!){
       deleteTodo(id: $id){
             id
         }
-    }
-`
+    }`
+const UPDATE_TODO = gql`
+    mutation updateTodo($status: Boolean! , $id:ID!,$task: String!){
+      updateTodo(status: $status id:$id task: $task){
+        id    
+        status
+        task
+        }
+    }`
 export default function Index() {
+  const [updateTodo] = useMutation(UPDATE_TODO);
+  const handleupdate = (Obj) => {
+    updateTodo({
+      variables: {
+        id:Obj.id,
+        task:Obj.task,
+        status:Obj.status
+      },
+      refetchQueries: [{ query: GET_TODOS }]
+    })
+    console.log(Obj)
+  }
   const [deleteTodo] = useMutation(DELETE_TODOS);
   const handleDelete = (id) => {
     deleteTodo({
@@ -33,8 +52,6 @@ export default function Index() {
       },
       refetchQueries: [{ query: GET_TODOS }]
     })
-    
-
   }
   let inputText;
   const [addTodo] = useMutation(ADD_TODO);
@@ -49,8 +66,6 @@ export default function Index() {
   }
 
   const { loading, error, data } = useQuery(GET_TODOS);
-  if (loading)
-    return <h2>Loading..</h2>
   if (error) {
     console.log(error)
     return <h2>Error</h2>
@@ -64,29 +79,44 @@ export default function Index() {
         }} />
       </label>
       <button onClick={addTask}>Add New Task</button>
-
       <br /> <br />
-      <table border="2" width="500px" >
-        <thead>      
-        <tr>
-          <th>Task</th>
-          <th>Status</th>
-        </tr>
-  </thead>
-        <tbody>
-          {data.todos.map(d => {
-            return (
-              <tr key={d.id}>
-                <td>{d.task}</td>
-                <td>{d.status ? "Pending" : "Completed"}</td>
-                <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
-              </tr>
-            )
-          }
-          )}
-        </tbody>
-      </table>
+      {loading ? (
+        <div>
+          <h1>Loading ....</h1>
+        </div>
+      ) : data.todos.length >= 1 ? (
+        <table border="2" width="500px" >
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.todos.map(d => {
+              return (
+                <tr key={d.id}>
+                  <td>{d.task}</td>
+                  <td>{d.status ? (
+                    <img style={{ width: "20px", height: "16px" }} src={Completedicon} alt="Completed Status" />
+                  ) : (
 
+                      <button onClick={() => handleupdate(d)}> <img style={{ width: "20px", height: "16px" }} src={Pendingicon} alt="Pending Status" />Mark Completed</button>
+                    )
+                  }
+                  </td>
+                  <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
+                </tr>
+              )
+            }
+            )}
+          </tbody>
+        </table>
+      ) : (
+            <div className="no-task">
+              <h4>No Task for today</h4>
+            </div>
+          )}
     </div>
   )
 }

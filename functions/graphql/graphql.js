@@ -9,7 +9,7 @@ const typeDefs = gql`
   type Mutation {
     addTodo(task: String!): Todo
     deleteTodo(id: ID!): Todo
-
+    updateTodo(status: Boolean! ,id:ID!,task:String!): Todo
   }
   type Todo {
     id: ID!
@@ -27,7 +27,7 @@ const resolvers = {
             q.Paginate(q.Match(q.Index('todo-index'))),
             q.Lambda(x => q.Get(x))
           )
-        );console.log(result.data)
+        );
 
         return result.data.map(d => {
           return {
@@ -53,9 +53,23 @@ const resolvers = {
             {
               data: {
                 task: task,
-                status: true
+                status: false
               }
             },
+          )
+        );
+        return result.ref.data;
+      } catch (err) {
+        return err.toString();
+      }
+    },
+    updateTodo: async (_, {id,task, status }) => {
+      try {
+        var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
+        let result = await client.query(
+          q.Replace(
+            q.Ref(q.Collection('todos'), id),
+            { data: { task:task,status: true } },
           )
         );
         return result.ref.data;
@@ -70,7 +84,6 @@ const resolvers = {
           q.Delete(
             q.Ref(q.Collection('todos'), id)
           )
-
         ); 
         return result.ref.data;
       } catch (err) {
