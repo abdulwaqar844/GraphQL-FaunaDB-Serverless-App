@@ -1,6 +1,29 @@
 <!-- AUTO-GENERATED-CONTENT:START (STARTER) -->
 JAMStack Serveless Functions based TODO App
 URL: https://todoapp-graphql.netlify.app/
+{data.length<=0:
+    (
+    <table border="2" width="500px" >
+        <thead>      
+        <tr>
+          <th>Task</th>
+          <th>Status</th>
+        </tr>
+  </thead>
+        <tbody>
+          {data.todos.map(d => {
+            return (
+              <tr key={d.id}>
+                <td>{d.task}</td>
+                <td>{d.status ? "Pending" : "Completed"}</td>
+                <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
+              </tr>
+            )
+          }
+          )}
+        </tbody>
+      </table>
+  ):(<h2>NO Takst Found</h2>)}
 <p align="center">
   <a href="https://www.gatsbyjs.com">
     <img alt="Gatsby" src="https://www.gatsbyjs.com/Gatsby-Monogram.svg" width="60" />
