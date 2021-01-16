@@ -1,0 +1,29 @@
+.container{
+text-align: center;
+padding-top: 20px;
+
+}
+input{
+    border: bold black;
+height: 30px;
+background-color: #fdfdff;
+width: 50%;
+margin: 10px;
+color: rgb(0, 12, 12);
+}
+.pending{
+    padding: 0%;
+    
+}
+button{
+    border-radius: 7px;
+    height: 30px;
+    width: auto;
+}
+img{
+    margin-left: 0%;
+    margin-right: 1px;
+}
+.task{
+    width: 60%;
+}

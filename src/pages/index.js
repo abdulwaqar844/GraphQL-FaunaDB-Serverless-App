@@ -2,6 +2,7 @@ import React from "react"
 import { useQuery, useMutation } from '@apollo/client';
 import Completedicon from "./../Images/Completedicon.png"
 import Pendingicon from "./../Images/Pendingicon.png"
+import style from "./index.module.css"
 import gql from 'graphql-tag';
 const GET_TODOS = gql`
 {
@@ -71,7 +72,7 @@ export default function Index() {
     return <h2>Error</h2>
   }
   return (
-    <div>
+    <div className={style.container}>
       <label>
         <h1> Add Task </h1>
         <input type="text" ref={node => {
@@ -90,14 +91,15 @@ export default function Index() {
             <tr>
               <th>Task</th>
               <th>Status</th>
+              <th>Delete</th>
             </tr>
           </thead>
           <tbody>
             {data.todos.map(d => {
               return (
                 <tr key={d.id}>
-                  <td>{d.task}</td>
-                  <td>{d.status ? (
+                  <td className={style.task}>{d.task}</td>
+                  <td className={style.pending}>{d.status ? (
                     <img style={{ width: "20px", height: "16px" }} src={Completedicon} alt="Completed Status" />
                   ) : (
 
