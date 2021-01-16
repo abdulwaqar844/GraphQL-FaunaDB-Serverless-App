@@ -33,8 +33,7 @@ export default function Index() {
       },
       refetchQueries: [{ query: GET_TODOS }]
     })
-    console.log("Form Index" ,id)
-    console.log("Form Functions" ,deleteTodo)
+    
 
   }
   let inputText;
