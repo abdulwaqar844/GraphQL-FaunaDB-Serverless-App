@@ -10,16 +10,17 @@ import TextField from '@material-ui/core/TextField';
 import gql from 'graphql-tag';
 const GET_TODOS = gql`
 {
-  todos  {
+  BookMarks  {
   id
-  task
-  status
+  title
+  url
 }
 } `
-const ADD_TODO = gql`
-    mutation addTodo($task: String!){
-        addTodo(task: $task){
-            task
+const ADD_BOOKMARK = gql`
+    mutation addBookMark($title: String!,$url: String!){
+      addBookMark(title: $title,url:$url){
+            title
+            url
         }
     }`
 const DELETE_TODOS = gql`
@@ -53,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default function Index() {
   const classes = useStyles();
-  const [addTodo] = useMutation(ADD_TODO);
+  const [addBookMark] = useMutation(ADD_BOOKMARK);
   const [updateTodo] = useMutation(UPDATE_TODO);
   const handleupdate = (Obj) => {
     updateTodo({
@@ -78,27 +79,26 @@ export default function Index() {
 
 
   const { loading, error, data } = useQuery(GET_TODOS);
-  if (error) {
-    console.log(error)
-    return <h2>Error</h2>
-  }
   return (
     <div className={style.container}>
 
       <Formik
-        initialValues={{ task: '', }}
+        initialValues={{ title: '', url: '' }}
         validate={values => {
           const errors = {};
-          if (!values.task) {
-            errors.task = 'Required';
+          if (!values.title) {
+            errors.title = 'Required';
+          } if (!values.url) {
+            errors.url = 'Required';
           }
           return errors;
 
         }}
         onSubmit={(values, { resetForm }) => {
-          addTodo({
+          addBookMark({
             variables: {
-              task: values.task
+              title: values.title,
+              url: values.url
             },
             refetchQueries: [{ query: GET_TODOS }]
           })
@@ -124,19 +124,35 @@ export default function Index() {
           >
             <TextField
               id="standard-basic"
-              label="Task"
+              label="Title"
               type="text"
-              name="task"
+              name="title"
               onChange={handleChange}
               onBlur={handleBlur}
-              value={values.task}
+              value={values.title}
 
-            />
-            {errors.task && touched.task && errors.task}
+            /><br/>
+
+            {errors.title && touched.title && errors.title}
+            <br/>
+
+            <TextField
+              id="standard-basic"
+              label="URL"
+              type="text"
+              name="url"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.url}
+
+            /><br/>
+            {errors.url && touched.url && errors.url}
+            <br/>
+
 
 
             <Button variant="contained" color="primary" type="submit"     >
-              Add Task
+              Add BookMark
             </Button>
           </form>
         )}
@@ -145,29 +161,21 @@ export default function Index() {
         <div>
           <CircularProgress />
         </div>
-      ) : data.todos.length >= 1 ? (
+      ) : data.BookMarks.length >= 1 ? (
         <table className={style.data}  >
           <thead>
             <tr>
-              <th>Task</th>
-              <th>Status</th>
+              <th>Title</th>
+              <th>URL</th>
               <th>Delete</th>
             </tr>
           </thead>
           <tbody>
-            {data.todos.map(d => {
+            {data.BookMarks.map(d => {
               return (
                 <tr key={d.id}>
-                  <td className={style.task}>{d.task}</td>
-                  <td className={style.status}>{d.status ? (
-                    <img style={{ width: "20px", height: "16px" }} src={Completedicon} alt="Completed Status" />
-                  ) : (
-
-                      <button onClick={() => handleupdate(d)}>Mark Completed</button>
-                    )
-                  }
-                  </td>
-                  <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
+                  <td className={style.task}>{d.title}</td>
+                  <td className={style.status}>{d.url}</td>
                 </tr>
               )
             }
@@ -176,9 +184,9 @@ export default function Index() {
         </table>
       ) : (
             <div className="no-task">
-              <h4>No Task for today</h4>
+              <h4>No Book Marks</h4>
             </div>
-          )}
+      )}
     </div>
   )
 }
