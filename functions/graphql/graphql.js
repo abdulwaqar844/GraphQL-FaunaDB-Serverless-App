@@ -1,39 +1,42 @@
 const { ApolloServer, gql } = require('apollo-server-lambda')
 var faunadb = require('faunadb'),
   q = faunadb.query;
+
 const typeDefs = gql`
   type Query {
-    BookMarks: [BookMark!]
+    todos: [Todo!]
   }
   type Mutation {
-    addBookMark(title: String,url: String): BookMark
-    deleteTodo(id: ID!): BookMark
-    updateTodo(status: Boolean! ,id:ID!,task:String!): BookMark
+    addTodo(task: String!): Todo
+    deleteTodo(id: ID!): Todo
+    updateTodo(status: Boolean! ,id:ID!,task:String!): Todo
   }
-  type BookMark {
+  type Todo {
     id: ID!
-    title: String
-    url: String
-  }`
+    task: String!
+    status: Boolean!
+  }
+`
 const resolvers = {
   Query: {
-    BookMarks: async (parent, args, context) => {
+    todos: async (parent, args, context) => {
       try {
-        var client = new faunadb.Client({ secret:"fnAD_yg40vACB6lgaLrJljlCJZ698-kMtMtr-3wZ" });
+        var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
         let result = await client.query(
           q.Map(
-            q.Paginate(q.Match(q.Index('bookmark_index'))),
+            q.Paginate(q.Match(q.Index('todo-index'))),
             q.Lambda(x => q.Get(x))
           )
         );
-        console.log(result.data)
+
         return result.data.map(d => {
           return {
             id: d.ref.id,
-            title: d.data.title,
-            url: d.data.url
+            status: d.data.status,
+            task: d.data.task
           }
-        })     }
+        })
+      }
       catch (err) {
         console.log(err)
       }
@@ -41,21 +44,21 @@ const resolvers = {
 
   },
   Mutation: {
-    addBookMark: async (_, { title,url }) => {
+    addTodo: async (_, { task }) => {
       try {
-        var client = new faunadb.Client({ secret: "fnAD_yg40vACB6lgaLrJljlCJZ698-kMtMtr-3wZ"});
+        var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
         let result = await client.query(
           q.Create(
-            q.Collection('bookmarks'),
+            q.Collection('todos'),
             {
               data: {
-                title,
-                url
+                task: task,
+                status: false
               }
             },
           )
         );
-        return result;
+        return result.ref.data;
       } catch (err) {
         return err.toString();
       }
@@ -65,7 +68,7 @@ const resolvers = {
         var client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET });
         let result = await client.query(
           q.Replace(
-            q.Ref(q.Collection('bookmarks'), id),
+            q.Ref(q.Collection('todos'), id),
             { data: { task:task,status: true } },
           )
         );

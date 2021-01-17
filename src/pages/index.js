@@ -10,17 +10,16 @@ import TextField from '@material-ui/core/TextField';
 import gql from 'graphql-tag';
 const GET_TODOS = gql`
 {
-  BookMarks  {
+  todos  {
   id
-  title
-  url
+  task
+  status
 }
 } `
-const ADD_BOOKMARK = gql`
-    mutation addBookMark($title: String!,$url: String!){
-      addBookMark(title: $title,url:$url){
-            title
-            url
+const ADD_TODO = gql`
+    mutation addTodo($task: String!){
+        addTodo(task: $task){
+            task
         }
     }`
 const DELETE_TODOS = gql`
@@ -54,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default function Index() {
   const classes = useStyles();
-  const [addBookMark] = useMutation(ADD_BOOKMARK);
+  const [addTodo] = useMutation(ADD_TODO);
   const [updateTodo] = useMutation(UPDATE_TODO);
   const handleupdate = (Obj) => {
     updateTodo({
@@ -79,26 +78,27 @@ export default function Index() {
 
 
   const { loading, error, data } = useQuery(GET_TODOS);
+  if (error) {
+    console.log(error)
+    return <h2>Error</h2>
+  }
   return (
     <div className={style.container}>
 
       <Formik
-        initialValues={{ title: '', url: '' }}
+        initialValues={{ task: '', }}
         validate={values => {
           const errors = {};
-          if (!values.title) {
-            errors.title = 'Required';
-          } if (!values.url) {
-            errors.url = 'Required';
+          if (!values.task) {
+            errors.task = 'Required';
           }
           return errors;
 
         }}
         onSubmit={(values, { resetForm }) => {
-          addBookMark({
+          addTodo({
             variables: {
-              title: values.title,
-              url: values.url
+              task: values.task
             },
             refetchQueries: [{ query: GET_TODOS }]
           })
@@ -124,35 +124,19 @@ export default function Index() {
           >
             <TextField
               id="standard-basic"
-              label="Title"
+              label="Task"
               type="text"
-              name="title"
+              name="task"
               onChange={handleChange}
               onBlur={handleBlur}
-              value={values.title}
+              value={values.task}
 
-            /><br/>
-
-            {errors.title && touched.title && errors.title}
-            <br/>
-
-            <TextField
-              id="standard-basic"
-              label="URL"
-              type="text"
-              name="url"
-              onChange={handleChange}
-              onBlur={handleBlur}
-              value={values.url}
-
-            /><br/>
-            {errors.url && touched.url && errors.url}
-            <br/>
-
+            />
+            {errors.task && touched.task && errors.task}
 
 
             <Button variant="contained" color="primary" type="submit"     >
-              Add BookMark
+              Add Task
             </Button>
           </form>
         )}
@@ -161,21 +145,29 @@ export default function Index() {
         <div>
           <CircularProgress />
         </div>
-      ) : data.BookMarks.length >= 1 ? (
+      ) : data.todos.length >= 1 ? (
         <table className={style.data}  >
           <thead>
             <tr>
-              <th>Title</th>
-              <th>URL</th>
+              <th>Task</th>
+              <th>Status</th>
               <th>Delete</th>
             </tr>
           </thead>
           <tbody>
-            {data.BookMarks.map(d => {
+            {data.todos.map(d => {
               return (
                 <tr key={d.id}>
-                  <td className={style.task}>{d.title}</td>
-                  <td className={style.status}>{d.url}</td>
+                  <td className={style.task}>{d.task}</td>
+                  <td className={style.status}>{d.status ? (
+                    <img style={{ width: "20px", height: "16px" }} src={Completedicon} alt="Completed Status" />
+                  ) : (
+
+                      <button onClick={() => handleupdate(d)}>Mark Completed</button>
+                    )
+                  }
+                  </td>
+                  <td><button onClick={() => handleDelete(d.id)}>Delete</button></td>
                 </tr>
               )
             }
@@ -184,9 +176,9 @@ export default function Index() {
         </table>
       ) : (
             <div className="no-task">
-              <h4>No Book Marks</h4>
+              <h4>No Task for today</h4>
             </div>
-      )}
+          )}
     </div>
   )
 }
