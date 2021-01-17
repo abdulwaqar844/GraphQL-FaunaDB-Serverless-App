@@ -1,8 +1,12 @@
 import React from "react"
 import { useQuery, useMutation } from '@apollo/client';
 import Completedicon from "./../Images/Completedicon.png"
-import Pendingicon from "./../Images/Pendingicon.png"
 import style from "./index.module.css"
+import CircularProgress from "@material-ui/core/CircularProgress"
+import { makeStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import { Formik } from "formik"
+import TextField from '@material-ui/core/TextField';
 import gql from 'graphql-tag';
 const GET_TODOS = gql`
 {
@@ -32,14 +36,31 @@ const UPDATE_TODO = gql`
         task
         }
     }`
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    position: 'absolute',
+    width: 500,
+    backgroundColor: theme.palette.background.paper,
+    border: '2px solid #000',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(2, 4, 3),
+  },
+  root: {
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  },
+}));
 export default function Index() {
+  const classes = useStyles();
+  const [addTodo] = useMutation(ADD_TODO);
   const [updateTodo] = useMutation(UPDATE_TODO);
   const handleupdate = (Obj) => {
     updateTodo({
       variables: {
-        id:Obj.id,
-        task:Obj.task,
-        status:Obj.status
+        id: Obj.id,
+        task: Obj.task,
+        status: Obj.status
       },
       refetchQueries: [{ query: GET_TODOS }]
     })
@@ -54,17 +75,7 @@ export default function Index() {
       refetchQueries: [{ query: GET_TODOS }]
     })
   }
-  let inputText;
-  const [addTodo] = useMutation(ADD_TODO);
-  const addTask = () => {
-    addTodo({
-      variables: {
-        task: inputText.value
-      },
-      refetchQueries: [{ query: GET_TODOS }]
-    })
-    inputText.value = "";
-  }
+
 
   const { loading, error, data } = useQuery(GET_TODOS);
   if (error) {
@@ -73,17 +84,66 @@ export default function Index() {
   }
   return (
     <div className={style.container}>
-      <label>
-        <h1> Add Task </h1>
-        <input type="text" ref={node => {
-          inputText = node;
-        }} />
-      </label>
-      <button onClick={addTask}>Add New Task</button>
-      <br /> <br />
+
+      <Formik
+        initialValues={{ task: '', }}
+        validate={values => {
+          const errors = {};
+          if (!values.task) {
+            errors.task = 'Required';
+          }
+          return errors;
+
+        }}
+        onSubmit={(values, { resetForm }) => {
+          addTodo({
+            variables: {
+              task: values.task
+            },
+            refetchQueries: [{ query: GET_TODOS }]
+          })
+          resetForm({})
+
+        }
+
+
+
+        }
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          /* and other goodies */
+        }) => (
+          <form className={classes.root} noValidate autoComplete="off"
+            onSubmit={handleSubmit}
+          >
+            <TextField
+              id="standard-basic"
+              label="Task"
+              type="text"
+              name="task"
+              onChange={handleChange}
+              onBlur={handleBlur}
+              value={values.task}
+
+            />
+            {errors.task && touched.task && errors.task}
+
+
+            <Button variant="contained" color="primary" type="submit"     >
+              Add Task
+            </Button>
+          </form>
+        )}
+      </Formik>
       {loading ? (
         <div>
-          <h1>Loading ....</h1>
+          <CircularProgress />
         </div>
       ) : data.todos.length >= 1 ? (
         <table className={style.data}  >
